@@ -1,10 +1,22 @@
 import asyncio
 import os
+import re
 from pyppeteer import launch
 
 async def main():
-    browser = await launch(headless=False)
-    #browser = await launch({'args': ['--proxy-server=221.140.235.236:5002'], 'headless': False })
+    # Launch the browser with Tor proxy settings
+    """ browser = await launch({
+        'args': [
+            '--proxy-server=socks5://127.0.0.1:9150',  # Tor proxy
+            '--no-sandbox', 
+            '--disable-setuid-sandbox'
+        ],
+        'headless': False
+    }) """
+
+    browser = await launch({'headless': False})
+
+
     page = await browser.newPage()
 
     # Navigate to the LinkedIn login page
@@ -75,7 +87,7 @@ async def main():
     rows = await page.querySelectorAll('tr.artdeco-models-table-row')
 
     # Iterate over each row
-    for i,row in enumerate(rows):
+    for i, row in enumerate(rows):
         print("Row ", i)
         # Find the specific cell containing the button
         action_cell = await row.querySelector('td.list-people-detail-header__actions')
@@ -90,7 +102,16 @@ async def main():
                 # Wait for some time to simulate processing (optional)
                 await asyncio.sleep(2)
 
+               # Now, find and click on the "Message" button in the dropdown using partial aria-label match
+                dropdown_items = await action_cell.querySelectorAll('.artdeco-dropdown__item')
+                for item in dropdown_items:
+                    aria_label = await page.evaluate('(element) => element.getAttribute("aria-label")', item)
+                    if aria_label and re.search(r'Message', aria_label):
+                        await item.click()
+                        print("Clicked on Message button.")
+                        break  # Stop searching further
+
     # Close the browser
     await browser.close()
 
-asyncio.run(main())
+asyncio.get_event_loop().run_until_complete(main())

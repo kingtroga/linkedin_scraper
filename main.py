@@ -111,6 +111,27 @@ async def main():
                         print("Clicked on Message button.")
                         break  # Stop searching further
 
+                # Wait for some time to simulate processing (optional)
+                await asyncio.sleep(2)
+
+                # Wait for message modal to appear using regex for aria-label
+                await page.waitForSelector('button[data-control-name="overlay.close_overlay"]')
+
+                # Find the close button within the message modal
+                close_button = await page.querySelector('button[data-control-name="overlay.close_overlay"]')
+
+                # Click on the close button
+                if close_button:
+                    await close_button.click()
+                    print("Closed message modal.")
+                    
+                    
+                # Wait for some time to simulate processing (optional)
+                await asyncio.sleep(2)
+
+
+                
+
     # Close the browser
     await browser.close()
 

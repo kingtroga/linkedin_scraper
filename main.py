@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 from pyppeteer import launch
+from pyppeteer.errors import TimeoutError as TitError
 
 async def main():
     # Launch the browser with Tor proxy settings
@@ -15,9 +16,13 @@ async def main():
     }) """
 
     browser = await launch({'headless': False})
+    """ browser = await launch({'args': ['--proxy-server=203.109.4.187:18092',
+                                     '--no-sandbox', 
+                                    '--disable-setuid-sandbox'], 'headless': False }) """
 
 
     page = await browser.newPage()
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36')
 
     # Navigate to the LinkedIn login page
     await page.goto('https://www.linkedin.com/sales/login', timeout=0)
@@ -120,10 +125,38 @@ async def main():
                 # Find the close button within the message modal
                 close_button = await page.querySelector('button[data-control-name="overlay.close_overlay"]')
 
+                # Find the close button within the message modal
+                close_button = await page.querySelector('button[data-control-name="overlay.close_overlay"]')
+
                 # Click on the close button
                 if close_button:
-                    await close_button.click()
-                    print("Closed message modal.")
+                    # Wait for element to appear in the message modal
+                    try:
+                        message_history = await page.waitForSelector('div._message-padding_zovuu6')
+                    except TitError:
+                        await close_button.click()
+                        print("Closed message modal.")
+                        await asyncio.sleep(2)
+                        message_history = False
+                    finally:
+                        if message_history:
+                            # Click on the button inside the message modal using regex for aria-label
+                            print("Message History exists")
+                            await asyncio.sleep(2)
+                            await page.waitForXPath("//span[text()='Saved']")
+                            span_elements = await page.xpath("//span[text()='Saved']")
+                            save_button = span_elements[0]
+                            await save_button.click()
+                            
+                            pass
+                        else:
+                            print(message_history)
+                            await asyncio.sleep(2)
+
+                        await close_button.click()
+                        print("Closed message modal.")
+                        await asyncio.sleep(2)
+                    
                     
                     
                 # Wait for some time to simulate processing (optional)

@@ -6,56 +6,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-
-# Initialize WebDriver
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-
+from selenium.webdriver.chrome.options import Options
 
 def main():
+    # Get session details from user
+    session_url = input("Enter the session URL: ")
+    session_id = input("Enter the session ID: ")
 
-    # Navigate to the LinkedIn login page
-    driver.get('https://www.linkedin.com/sales/login')
-
-    # Wait for the iframe to appear and switch to its context
-    WebDriverWait(driver, 10).until(EC.frame_to_be_available_and_switch_to_it((By.CSS_SELECTOR, 'iframe[title="Login screen"]')))
-
-    # Wait for the username and password fields inside the iframe
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, 'session_key')))
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, 'session_password')))
-
-    # Get the input elements
-    username_input = driver.find_element(By.NAME, 'session_key')
-    password_input = driver.find_element(By.NAME, 'session_password')
-
-    # Type into the inputs
-    username_input.send_keys(os.getenv('LINKEDIN_USERNAME'))
-    password_input.send_keys(os.getenv('LINKEDIN_PASSWORD'))
-
-    # Submit the form
-    driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
-
-    # Function to check if still on the login page
-    def check_login_page():
-        try:
-            current_url = driver.current_url
-            if '/sales/login' in current_url:
-                print("Go to your email and get the verification code Or solve the AUDIO challenge and wait for the page to load")
-                return True
-            return False
-        except Exception as e:
-            print(f"Error checking login page: {e}")
-            return False
-
-    # Wait for 60 seconds or until not on the login page
-    time.sleep(20)
-    for _ in range(60):
-        if check_login_page():
-            time.sleep(120)
-        else:
-            print('Login Successful!')
-            break
+    # Set Chrome options
+    chrome_options = Options()
+    
+    # Connect to the existing browser session
+    driver = webdriver.Remote(command_executor=session_url, options=chrome_options)
+    driver.session_id = session_id
 
     # Navigate to the desired page
     driver.get('https://www.linkedin.com/sales/lists/people/7203399320862081025?sortCriteria=CREATED_TIME&sortOrder=DESCENDING')
@@ -131,7 +94,7 @@ def main():
                                 time.sleep(2)
 
                                 message_field = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//textarea[@placeholder="Type your message here…"]')))
-                                message_field.send_keys("""At Prime Avenue Logistics (https://primeavenuelogistics.com/), we specialize in providing top-tier 3PL solutions, including freight forwarding, pick pack ship, import/export, customs clearance, Amazon/Walmart replenishment, and warehousing services. Our straightforward pricing ensures you get value without the hassle. 
+                                message_field.send_keys("""At Prime Avenue Logistics (https://primeavenuelogistics.com/), we specialize in providing top-tier 3PL solutions, including freight forwarding, pick pack ship, import/export, customs clearance, Amazon/Walmart replenishment, and warehousing services. Our straightforward pricing ensures you get value without the hassle.
 
 Already have a 3PL or freight forwarder? We can provide you with a free no strings attached quote.
 

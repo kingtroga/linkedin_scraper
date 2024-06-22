@@ -30,19 +30,22 @@ def main():
     coconut = True
 
     while coconut:
-        # Wait for the button to appear
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="view_spotlight_for_type_ALL"]')))
+        try:
+            # Wait for the button to appear
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="view_spotlight_for_type_ALL"]')))
 
-        # Get the button element
-        button = driver.find_element(By.CSS_SELECTOR, 'button[data-control-name="view_spotlight_for_type_ALL"]')
+            # Get the button element
+            button = driver.find_element(By.CSS_SELECTOR, 'button[data-control-name="view_spotlight_for_type_ALL"]')
+            # Extract the number from the button's primary text
+            number_element = button.find_element(By.CSS_SELECTOR, '.artdeco-spotlight-tab__primary-text')
+            total_results = number_element.text
+        except Exception as e:
+            total_results = 0
 
-        # Extract the number from the button's primary text
-        number_element = button.find_element(By.CSS_SELECTOR, '.artdeco-spotlight-tab__primary-text')
-        total_results = number_element.text
-
+       
         print("Total_results: ", total_results)
 
-        if total_results == "0":
+        if total_results == 0:
             print("Nobody to reach out to hence this program will sleep for the next two hours")
             time.sleep(7200)  # 2 hours in seconds
         else:
@@ -78,6 +81,9 @@ def main():
                 
                 # Extracting Company (Account)
                 company = cells[1].find('span', {'data-anonymize': 'company-name'}).get_text(strip=True)
+
+                # Extracting the Company Linkedin URL
+                company_linkedin_url = "https://www.linkedin.com" +  str(cells[1].find('a', href=lambda href: href and re.search(r'/sales/company/', href))['href'])
                 
                 # Extracting Geography
                 geography = cells[2].get_text(strip=True)
@@ -91,6 +97,7 @@ def main():
                     'Linkedin URL': linkedin_url,
                     'Role': role,
                     'Company': company,
+                    'Company Linkedin URL': company_linkedin_url,
                     'Geography': geography,
                     'Date Added': date_added
                 }
@@ -102,6 +109,7 @@ def main():
                 print(f"Role: {data[i]['Role']}")
                 print(f"Linkedin URL: {data[i]['Linkedin URL']}")
                 print(f"Company: {data[i]['Company']}")
+                print(f"Company Linkedin URL: {data[i]['Company Linkedin URL']}")
                 print(f"Geography: {data[i]['Geography']}")
                 print(f"Date Added: {data[i]['Date Added']}")
                 print('-' * 20)
@@ -185,9 +193,13 @@ Let's chat about how we can streamline your supply chain and drive your success.
                             remove_button.click()
                             time.sleep(2)
 
-                            # Add to Connecting list
+                            """ # Add to Connecting list
                             connecting_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
-                            connecting_button.click()
+                            connecting_button.click() """
+
+                            # Add to test list
+                            test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Test List']")))
+                            test_list_button.click()
 
                             close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
                             close_button.click()

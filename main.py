@@ -185,9 +185,9 @@ Let's chat about how we can streamline your supply chain and drive your success.
                             remove_button.click()
                             time.sleep(2)
 
-                            # Add to Emailed list
-                            emailed_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Emailed']")))
-                            emailed_button.click()
+                            # Add to Connecting list
+                            connecting_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
+                            connecting_button.click()
 
                             close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
                             close_button.click()

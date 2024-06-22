@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from bs4 import BeautifulSoup
 
 def main():
     # Get session details from user
@@ -21,8 +22,10 @@ def main():
     driver.session_id = session_id
 
     # Navigate to the desired page
-    driver.get('https://www.linkedin.com/sales/lists/people/7203399320862081025?sortCriteria=CREATED_TIME&sortOrder=DESCENDING')
+    driver.get('https://www.linkedin.com/sales/lists/people/7209949800270548995?sortCriteria=CREATED_TIME&sortOrder=DESCENDING')
     time.sleep(10)
+
+
 
     coconut = True
 
@@ -45,6 +48,71 @@ def main():
         else:
             # Wait for all table rows to appear
             WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'tr.artdeco-models-table-row')))
+                                            
+
+            # Now get the html code
+            page_source = driver.page_source
+
+            soup = BeautifulSoup(page_source, 'html.parser')
+
+            # Finding the table body
+            table_body = soup.find('tbody')
+
+            # Extracting rows from the table
+            rows = table_body.find_all('tr')
+
+            # List to store extracted data
+            data = {}
+
+            for i, row in enumerate(rows):
+                # Extracting each cell in the row
+                cells = row.find_all('td')
+                
+                # Extracting Name
+                name = cells[0].find('a', class_='t-bold').get_text(strip=True)
+
+                linkedin_url =  "https://www.linkedin.com" +  str(cells[0].find('a', class_='t-bold')['href'])
+                
+                # Extracting Role
+                role = cells[0].find('div', style='display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; -webkit-line-clamp: 2; overflow-wrap: anywhere;').get_text(strip=True)
+                
+                # Extracting Company (Account)
+                company = cells[1].find('span', {'data-anonymize': 'company-name'}).get_text(strip=True)
+                
+                # Extracting Geography
+                geography = cells[2].get_text(strip=True)
+                
+                # Extracting Date Added
+                date_added = cells[5].get_text(strip=True)
+                
+                # Appending extracted data to the list
+                data[i] = {
+                    'Name': name,
+                    'Linkedin URL': linkedin_url,
+                    'Role': role,
+                    'Company': company,
+                    'Geography': geography,
+                    'Date Added': date_added
+                }
+
+            # Printing the extracted data
+            for i, _ in enumerate(data):
+                print(f"Data {i+1} :", data[i])
+                print(f"Name: {data[i]['Name']}")
+                print(f"Role: {data[i]['Role']}")
+                print(f"Linkedin URL: {data[i]['Linkedin URL']}")
+                print(f"Company: {data[i]['Company']}")
+                print(f"Geography: {data[i]['Geography']}")
+                print(f"Date Added: {data[i]['Date Added']}")
+                print('-' * 20)
+
+            print("First Batch of Data Scraped Successfully")
+
+            
+
+
+
+
 
             # Select all table rows
             rows = driver.find_elements(By.CSS_SELECTOR, 'tr.artdeco-models-table-row')
@@ -104,7 +172,9 @@ Let's chat about how we can streamline your supply chain and drive your success.
 
                                 send_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Send']")))
                                 send_button.click()
-                                time.sleep(2)
+                                time.sleep(5)
+
+                            
 
                             # Remove from "Need to reach out to" List
                             save_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Saved']")))

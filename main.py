@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
+import pandas as pd
 
 def main():
     # Get session details from user
@@ -16,6 +17,10 @@ def main():
 
     # Set Chrome options
     chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Ensure the browser is in headless mode
+    chrome_options.add_argument("--disable-gpu")  # Disable GPU hardware acceleration
+    chrome_options.add_argument("--no-sandbox")  # Bypass OS security model
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
     
     # Connect to the existing browser session
     driver = webdriver.Remote(command_executor=session_url, options=chrome_options)
@@ -28,6 +33,8 @@ def main():
 
 
     coconut = True
+    lead_counter = 0
+    data = []
 
     while coconut:
         try:
@@ -38,7 +45,7 @@ def main():
             button = driver.find_element(By.CSS_SELECTOR, 'button[data-control-name="view_spotlight_for_type_ALL"]')
             # Extract the number from the button's primary text
             number_element = button.find_element(By.CSS_SELECTOR, '.artdeco-spotlight-tab__primary-text')
-            total_results = number_element.text
+            total_results = int(number_element.text)
         except Exception as e:
             total_results = 0
 
@@ -47,12 +54,22 @@ def main():
 
         if total_results == 0:
             print("Nobody to reach out to hence this program will sleep for the next two hours")
+            if data:
+                df = pd.DataFrame(data)
+
+                # Define the Excel file path
+                excel_file = 'scrape_output1.xlsx'
+
+                # Write the DataFrame to an Excel file
+                df.to_excel(excel_file, index=False)
+
+                print(f"Data scrapped has been written to {excel_file}")
+            
             time.sleep(7200)  # 2 hours in seconds
         else:
             # Wait for all table rows to appear
             WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'tr.artdeco-models-table-row')))
-                                            
-
+                            
             # Now get the html code
             page_source = driver.page_source
 
@@ -65,7 +82,7 @@ def main():
             rows = table_body.find_all('tr')
 
             # List to store extracted data
-            data = {}
+            
 
             for i, row in enumerate(rows):
                 # Extracting each cell in the row
@@ -92,7 +109,7 @@ def main():
                 date_added = cells[5].get_text(strip=True)
                 
                 # Appending extracted data to the list
-                data[i] = {
+                data.append({
                     'Name': name,
                     'Linkedin URL': linkedin_url,
                     'Role': role,
@@ -100,34 +117,18 @@ def main():
                     'Company Linkedin URL': company_linkedin_url,
                     'Geography': geography,
                     'Date Added': date_added
-                }
+                })
+                
 
-            # Printing the extracted data
-            for i, _ in enumerate(data):
-                print(f"Data {i+1} :", data[i])
-                print(f"Name: {data[i]['Name']}")
-                print(f"Role: {data[i]['Role']}")
-                print(f"Linkedin URL: {data[i]['Linkedin URL']}")
-                print(f"Company: {data[i]['Company']}")
-                print(f"Company Linkedin URL: {data[i]['Company Linkedin URL']}")
-                print(f"Geography: {data[i]['Geography']}")
-                print(f"Date Added: {data[i]['Date Added']}")
-                print('-' * 20)
-
-            print("First Batch of Data Scraped Successfully")
+            print(f"{len(rows)} Rows of Data Scraped Successfully")
 
             
-
-
-
-
-
             # Select all table rows
             rows = driver.find_elements(By.CSS_SELECTOR, 'tr.artdeco-models-table-row')
 
             # Iterate over each row
             for i, row in enumerate(rows):
-                print("Row ", i)
+                print("Lead: ", lead_counter + 1)
                 # Find the specific cell containing the button
                 action_cell = row.find_element(By.CSS_SELECTOR, 'td.list-people-detail-header__actions')
 
@@ -192,19 +193,25 @@ Let's chat about how we can streamline your supply chain and drive your success.
                             remove_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Need to Reach out To']")))
                             remove_button.click()
                             time.sleep(2)
-
+                            
+                            #TODO: Add the code for the wide Linkedin Sales Navigator erro
                             """ # Add to Connecting list
                             connecting_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
                             connecting_button.click() """
 
-                            # Add to test list
+                            """ # Add to test list
                             test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Test List']")))
-                            test_list_button.click()
+                            test_list_button.click() """
+
+                            # Add to Emailed list
+                            emailed_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Emailed']")))
+                            emailed_button.click()
 
                             close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
                             close_button.click()
                             print("Closed message modal.")
                             time.sleep(2)
+                            lead_counter = lead_counter + 1
 
         driver.refresh()
         time.sleep(10)

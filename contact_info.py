@@ -286,7 +286,7 @@ def main():
         'Geography': DATA_FRAME['Geography'].tolist(),
         'Date Added': DATA_FRAME['Date Added'].tolist(), 
         'Company': DATA_FRAME['Company'].tolist(),
-        'Company Linkedin URL': DATA_FRAME['Linkedin URL'].tolist(),
+        'Company Linkedin URL': DATA_FRAME['Company Linkedin URL'].tolist(),
     }
     df_about_updated = pd.DataFrame(data)
     df_about_updated.to_excel('scrape_output2.xlsx', index=False)

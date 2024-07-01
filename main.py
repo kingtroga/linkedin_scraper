@@ -11,6 +11,9 @@ from bs4 import BeautifulSoup
 import pandas as pd
 
 def main():
+    restricted = None
+    error_occured = None
+
     # Get session details from user
     session_url = input("Enter the session URL: ")
     session_id = input("Enter the session ID: ")
@@ -166,52 +169,100 @@ def main():
                                 print("Message History doesn't exist")
                                 time.sleep(2)
                                 # There is no message history so send the message
-                                subject_field = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//input[@placeholder="Subject (required)"]')))
-                                subject_field.send_keys("Cost Effective, Efficient, 3PL Services & Freight Forwarding Services")
+                                try:
+                                    subject_field = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//input[@placeholder="Subject (required)"]')))
+                                    subject_field.send_keys("Cost Effective, Efficient, 3PL Services & Freight Forwarding Services")
+                                    time.sleep(2)
+
+                                    message_field = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//textarea[@placeholder="Type your message here…"]')))
+                                    message_field.send_keys("""At Prime Avenue Logistics (https://primeavenuelogistics.com/), we specialize in providing top-tier 3PL solutions, including freight forwarding, pick pack ship, import/export, customs clearance, Amazon/Walmart replenishment, and warehousing services. Our straightforward pricing ensures you get value without the hassle.
+
+    Already have a 3PL or freight forwarder? We can provide you with a free no strings attached quote.
+
+    Let's chat about how we can streamline your supply chain and drive your success.
+    """)
+                                    time.sleep(2)
+
+                                    send_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Send']")))
+                                    send_button.click()
+                                    time.sleep(5)
+                                except:
+                                    try:
+                                        restricted = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.conversation-restriction')))
+                                    except:
+                                        error_occured = "True"
+
+                            if restricted != None or error_occured == "True":
+                                # Close the modal
+                                time.sleep(2)
+                                close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
+                                close_button.click()
+                                print("Closed message modal.")
                                 time.sleep(2)
 
-                                message_field = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//textarea[@placeholder="Type your message here…"]')))
-                                message_field.send_keys("""At Prime Avenue Logistics (https://primeavenuelogistics.com/), we specialize in providing top-tier 3PL solutions, including freight forwarding, pick pack ship, import/export, customs clearance, Amazon/Walmart replenishment, and warehousing services. Our straightforward pricing ensures you get value without the hassle.
+                                # Open dropdown and click on connect
+                                action_cell = row.find_element(By.CSS_SELECTOR, 'td.list-people-detail-header__actions')
 
-Already have a 3PL or freight forwarder? We can provide you with a free no strings attached quote.
+                                # Find the button within the cell
+                                if action_cell:
+                                    button = action_cell.find_element(By.CSS_SELECTOR, 'button.artdeco-dropdown__trigger')
+                                    if button:
+                                        # Click the button
+                                        button.click()
+                                        time.sleep(2)
 
-Let's chat about how we can streamline your supply chain and drive your success.
-""")
+                                        # Now, find and click on the "Connect" button in the dropdown using partial aria-label match
+                                        dropdown_items = action_cell.find_elements(By.CSS_SELECTOR, '.artdeco-dropdown__item')
+                                        for item in dropdown_items:
+                                            aria_label = item.get_attribute('class')
+                                            if aria_label and re.search(r'list-detail__connect-option', aria_label):
+                                                item.click()
+                                                print("Clicked on Connect button.")
+                                                break  # Stop searching further
+
                                 time.sleep(2)
 
-                                send_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Send']")))
-                                send_button.click()
-                                time.sleep(5)
+                                # Send connecting message
+                                try:
+                                    connect_modal = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div[data-sn-view-name="subpage-connect-modal"]')))
+                                    message_box = connect_modal.find_element(By.CSS_SELECTOR, 'textarea#connect-cta-form__invitation')
+                                    message_box.send_keys('I wanted to connect to see if we could offer you a more Cost Effective, Efficient, 3PL Services &/or Freight Forwarding Services (https://primeavenuelogistics.com/).')
+                                    time.sleep(2)
+                                    invitation_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//button[text()='Send Invitation']")))
+                                    invitation_button.click()
+                                    time.sleep(2)
+                                except:
+                                    print("Couldn't find the Connect Modal. Refreshing the page and starting again.")
+                                    break
 
-                            
+                            else:
+                                # Remove from "Need to reach out to" List
+                                save_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Saved']")))
+                                save_button.click()
+                                time.sleep(2)
 
-                            # Remove from "Need to reach out to" List
-                            save_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Saved']")))
-                            save_button.click()
-                            time.sleep(2)
+                                remove_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Need to Reach out To']")))
+                                remove_button.click()
+                                time.sleep(2)
+                                
+                                #TODO: Add the code for the wide Linkedin Sales Navigator erro
+                                """ # Add to Connecting list
+                                connecting_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
+                                connecting_button.click() """
 
-                            remove_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Need to Reach out To']")))
-                            remove_button.click()
-                            time.sleep(2)
-                            
-                            #TODO: Add the code for the wide Linkedin Sales Navigator erro
-                            """ # Add to Connecting list
-                            connecting_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
-                            connecting_button.click() """
+                                """ # Add to test list
+                                test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Test List']")))
+                                test_list_button.click() """
 
-                            """ # Add to test list
-                            test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Test List']")))
-                            test_list_button.click() """
+                                # Add to Emailed list
+                                emailed_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Emailed']")))
+                                emailed_button.click()
 
-                            # Add to Emailed list
-                            emailed_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Emailed']")))
-                            emailed_button.click()
-
-                            close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
-                            close_button.click()
-                            print("Closed message modal.")
-                            time.sleep(2)
-                            lead_counter = lead_counter + 1
+                                close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
+                                close_button.click()
+                                print("Closed message modal.")
+                                time.sleep(2)
+                                lead_counter = lead_counter + 1
 
         driver.refresh()
         time.sleep(10)

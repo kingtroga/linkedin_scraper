@@ -92,24 +92,45 @@ def main():
                 cells = row.find_all('td')
                 
                 # Extracting Name
-                name = cells[0].find('a', class_='t-bold').get_text(strip=True)
+                try:
+                    name = cells[0].find('a', class_='t-bold').get_text(strip=True)
+                except:
+                    name = "NULL"
 
-                linkedin_url =  "https://www.linkedin.com" +  str(cells[0].find('a', class_='t-bold')['href'])
+                try:
+                    linkedin_url =  "https://www.linkedin.com" +  str(cells[0].find('a', class_='t-bold')['href'])
+                except:
+                    linkedin_url = "NULL"
                 
                 # Extracting Role
-                role = cells[0].find('div', style='display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; -webkit-line-clamp: 2; overflow-wrap: anywhere;').get_text(strip=True)
+                try:
+                    role = cells[0].find('div', style='display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; -webkit-line-clamp: 2; overflow-wrap: anywhere;').get_text(strip=True)
+                except:
+                    role = "NULL"
                 
                 # Extracting Company (Account)
-                company = cells[1].find('span', {'data-anonymize': 'company-name'}).get_text(strip=True)
+                try:
+                    company = cells[1].find('span', {'data-anonymize': 'company-name'}).get_text(strip=True)
+                except:
+                    company = "NULL"
 
                 # Extracting the Company Linkedin URL
-                company_linkedin_url = "https://www.linkedin.com" +  str(cells[1].find('a', href=lambda href: href and re.search(r'/sales/company/', href))['href'])
+                try:
+                    company_linkedin_url = "https://www.linkedin.com" +  str(cells[1].find('a', href=lambda href: href and re.search(r'/sales/company/', href))['href'])
+                except:
+                    company_linkedin_url = "NULL"
                 
                 # Extracting Geography
-                geography = cells[2].get_text(strip=True)
+                try:
+                    geography = cells[2].get_text(strip=True)
+                except:
+                    geography = "NULL"
                 
                 # Extracting Date Added
-                date_added = cells[5].get_text(strip=True)
+                try:
+                    date_added = cells[5].get_text(strip=True)
+                except:
+                    date_added = "NULL"
                 
                 # Appending extracted data to the list
                 data.append({

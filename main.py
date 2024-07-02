@@ -216,6 +216,7 @@ def main():
                                         for item in dropdown_items:
                                             aria_label = item.get_attribute('class')
                                             if aria_label and re.search(r'list-detail__connect-option', aria_label):
+                                                
                                                 item.click()
                                                 print("Clicked on Connect button.")
                                                 break  # Stop searching further
@@ -231,8 +232,62 @@ def main():
                                     invitation_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//button[text()='Send Invitation']")))
                                     invitation_button.click()
                                     time.sleep(2)
+
+
+                                    # NOW ADD THE LEAD TO THE CONNECTING LIST AND REMOVE FROM THE NEED TO REACH OUT LIST
+                                    action_cell = row.find_element(By.CSS_SELECTOR, 'td.list-people-detail-header__actions')
+
+                                    # Find the button within the cell
+                                    if action_cell:
+                                        button = action_cell.find_element(By.CSS_SELECTOR, 'button.artdeco-dropdown__trigger')
+                                        if button:
+                                            # Click the button
+                                            button.click()
+                                            time.sleep(2)
+
+                                            # Now, find and click on the "Message" button in the dropdown using partial aria-label match
+                                            dropdown_items = action_cell.find_elements(By.CSS_SELECTOR, '.artdeco-dropdown__item')
+                                            for item in dropdown_items:
+                                                aria_label = item.get_attribute('aria-label')
+                                                if aria_label and re.search(r'Message', aria_label):
+                                                    item.click()
+                                                    print("Clicked on Message button.")
+                                                    break  # Stop searching further
+
+                                            time.sleep(2)
+                                    
+                                    save_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Saved']")))
+                                    save_button.click()
+                                    time.sleep(2)
+
+                                    remove_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Need to Reach out To']")))
+                                    remove_button.click()
+                                    time.sleep(2)
+                                    
+                                    #TODO: Add the code for the wide Linkedin Sales Navigator error
+                                    # Add to Connecting list
+                                    connecting_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
+                                    connecting_button.click()
+
+                                    """ # Add to test list
+                                    test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Test List']")))
+                                    test_list_button.click() """
+
+                                    """ # Add to Emailed list
+                                    emailed_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Emailed']")))
+                                    emailed_button.click() """
+
+                                    close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
+                                    close_button.click()
+                                    print("Closed message modal.")
+                                    time.sleep(2)
+                                    lead_counter = lead_counter + 1
+                                    continue
+
+                                    
                                 except:
                                     print("Couldn't find the Connect Modal. Refreshing the page and starting again.")
+                                    #print("Checking if the connecting is pending...")
                                     break
 
                             else:
@@ -245,7 +300,7 @@ def main():
                                 remove_button.click()
                                 time.sleep(2)
                                 
-                                #TODO: Add the code for the wide Linkedin Sales Navigator erro
+                                #TODO: Add the code for the wide Linkedin Sales Navigator error
                                 """ # Add to Connecting list
                                 connecting_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
                                 connecting_button.click() """

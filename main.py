@@ -62,11 +62,18 @@ def main():
 
                 # Define the Excel file path
                 excel_file = 'scrape_output1.xlsx'
+                csv_file = 'scrape_output1.csv'
 
-                # Write the DataFrame to an Excel file
-                df.to_excel(excel_file, index=False)
+                try:
+                    # Write the DataFrame to an Excel file
+                    df.to_excel(excel_file, index=False)
+                    print(f"Data scrapped has been written to {excel_file}")
+                except:
+                    # If Openpxl is unavalible write the data to a CSV file
+                    df.to_csv(csv_file, index=False)
+                    print(f"Data scrapped has been written to {csv_file}")
+                
 
-                print(f"Data scrapped has been written to {excel_file}")
             
             time.sleep(7200)  # 2 hours in seconds
         else:
@@ -250,6 +257,24 @@ def main():
                                     message_box = connect_modal.find_element(By.CSS_SELECTOR, 'textarea#connect-cta-form__invitation')
                                     message_box.send_keys('I wanted to connect to see if we could offer you a more Cost Effective, Efficient, 3PL Services &/or Freight Forwarding Services (https://primeavenuelogistics.com/).')
                                     time.sleep(2)
+
+                                    # Check if to connect with this Lead an email is needed
+                                    try:
+                                        email_needed = connect_modal.find_element(By.CSS_SELECTOR, 'input#connect-cta-form__email')
+                                    except:
+                                        email_needed = False
+
+                                    if email_needed:
+                                        print("You need this Lead's email to connect")
+                                        time.sleep(2)
+                                        close_connect_modal_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-test-modal-close-btn]')))
+                                        close_connect_modal_button.click()
+                                        lead_counter = lead_counter + 1
+                                        continue
+                                    
+
+
+
                                     invitation_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//button[text()='Send Invitation']")))
                                     invitation_button.click()
                                     time.sleep(2)
@@ -307,9 +332,12 @@ def main():
 
                                     
                                 except:
-                                    print("Couldn't find the Connect Modal. Refreshing the page and starting again.")
+                                    print("An error occured while trying to connect with this Lead. Moving to the next lead")
+                                    close_connect_modal_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-test-modal-close-btn]')))
+                                    close_connect_modal_button.click()
+                                    lead_counter = lead_counter + 1
                                     #print("Checking if the connecting is pending...")
-                                    break
+                                    
 
                             else:
                                 # Remove from "Need to reach out to" List

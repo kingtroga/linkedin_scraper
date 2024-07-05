@@ -13,10 +13,8 @@ import pyperclip
 
 # Load the Lead Profiles
 DATA_FRAME = pd.read_excel('scrape_output2.xlsx')
-# I made a mistake the first time I ran 
-# contact_info that's why this is here 😂
-DATA_FRAME2 = pd.read_excel('scrape_output1.xlsx')
-COMPANY_LEAD_PROFILE_LINKS = DATA_FRAME2['Company Linkedin URL'].tolist()
+
+COMPANY_LEAD_PROFILE_LINKS = DATA_FRAME['Company Linkedin URL'].tolist()
 #print("Company Lead Profile links: ", COMPANY_LEAD_PROFILE_LINKS[0:2])
 
 
@@ -49,6 +47,21 @@ def main():
         company_headquarters_string = ""
         company_overiew_string = ""
         company_website_string = ""
+
+
+        # For some reason this person has no company 
+        if pd.isna(company_profile):
+            company_headquarters_string = "NULL"
+            company_overiew_string = "NULL"
+            company_website_string = "NULL"
+
+
+            company_headquarters_list.append(company_headquarters_string)
+            company_overiew_list.append(company_overiew_string)
+            company_website_list.append(company_website_string)
+            counter = counter + 1
+            continue
+
 
         driver.get(company_profile)
         time.sleep(10)

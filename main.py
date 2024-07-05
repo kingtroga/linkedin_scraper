@@ -8,11 +8,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
+from selenium.common.exceptions import TimeoutException as SeleniumTimeOutException
 import pandas as pd
 
 def main():
-    restricted = None
-    error_occured = None
 
     # Get session details from user
     session_url = input("Enter the session URL: ")
@@ -159,6 +158,9 @@ def main():
 
             # Iterate over each row
             for i, row in enumerate(rows):
+                restricted = None
+                error_occured = None
+                connected_button_click = False
                 print("Lead: ", lead_counter + 1)
                 # Find the specific cell containing the button
                 action_cell = row.find_element(By.CSS_SELECTOR, 'td.list-people-detail-header__actions')
@@ -220,6 +222,8 @@ def main():
                                     except:
                                         error_occured = "True"
 
+                            #print(error_occured, "ERROR_OCCURED")
+
                             if restricted != None or error_occured == "True":
                                 # Close the modal
                                 time.sleep(2)
@@ -230,30 +234,125 @@ def main():
 
                                 # Open dropdown and click on connect
                                 action_cell = row.find_element(By.CSS_SELECTOR, 'td.list-people-detail-header__actions')
+                                try:
+                                    # Find the button within the cell
+                                    if action_cell:
+                                        button = action_cell.find_element(By.CSS_SELECTOR, 'button.artdeco-dropdown__trigger')
+                                        if button:
+                                            # Click the button
+                                            button.click()
+                                            time.sleep(2)
 
-                                # Find the button within the cell
-                                if action_cell:
-                                    button = action_cell.find_element(By.CSS_SELECTOR, 'button.artdeco-dropdown__trigger')
-                                    if button:
-                                        # Click the button
-                                        button.click()
+                                            # Now, find and click on the "Connect" button in the dropdown using partial aria-label match
+                                            dropdown_items = action_cell.find_elements(By.CSS_SELECTOR, '.artdeco-dropdown__item')
+                                            for item in dropdown_items:
+                                                aria_label = item.get_attribute('class')
+                                                if aria_label and re.search(r'list-detail__connect-option', aria_label):
+                                                    item.click()
+                                                    print("Clicked on Connect button.")
+                                                    connected_button_click = True
+                                                    break  # Stop searching further
+                                                
+                                    time.sleep(2)
+
+                                    # Send connecting message
+                                    if not connected_button_click:
+                                        print("You have connected with this lead before")
                                         time.sleep(2)
 
-                                        # Now, find and click on the "Connect" button in the dropdown using partial aria-label match
-                                        dropdown_items = action_cell.find_elements(By.CSS_SELECTOR, '.artdeco-dropdown__item')
-                                        for item in dropdown_items:
-                                            aria_label = item.get_attribute('class')
-                                            if aria_label and re.search(r'list-detail__connect-option', aria_label):
-                                                
-                                                item.click()
-                                                print("Clicked on Connect button.")
-                                                break  # Stop searching further
+                                        action_cell = row.find_element(By.CSS_SELECTOR, 'td.list-people-detail-header__actions')
+                                        #action_cell = row.find_element(By.CSS_SELECTOR, 'td.list-people-detail-header__actions')
+                                        #print("ACTION_CELL", action_cell)
 
-                                time.sleep(2)
+                                        # Find the button within the cell
+                                        if action_cell:
+                                            button = action_cell.find_element(By.CSS_SELECTOR, 'button.artdeco-dropdown__trigger')
+                                            if button:
+                                                # Click the button
+                                                button.click()
+                                                # click on the button again
+                                                button.click()
+                                                time.sleep(2)
 
-                                # Send connecting message
-                                try:
-                                    connect_modal = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div[data-sn-view-name="subpage-connect-modal"]')))
+                                                # Now, find and click on the "Message" button in the dropdown using partial aria-label match
+                                                dropdown_items = action_cell.find_elements(By.CSS_SELECTOR, '.artdeco-dropdown__item')
+                                                for item in dropdown_items:
+                                                    aria_label = item.get_attribute('aria-label')
+                                                    if aria_label and re.search(r'Message', aria_label):
+                                                        item.click()
+                                                        print("Clicked on Message button.")
+                                                        break  # Stop searching further
+
+                                                time.sleep(2)
+                                        
+                                        save_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Saved']")))
+                                        save_button.click()
+                                        time.sleep(2)
+
+                                        remove_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Need to Reach out To']")))
+                                        remove_button.click()
+                                        time.sleep(2)
+
+                                        test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
+                                        test_list_button.click()
+                                        time.sleep(2)
+
+                                        close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
+                                        close_button.click()
+                                        print("Closed message modal.")
+                                        time.sleep(2)
+                                        lead_counter = lead_counter + 1
+                                        continue
+                                    else:
+                                        connect_modal = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div[data-sn-view-name="subpage-connect-modal"]')))
+                                        
+
+                                except:
+                                    print("You have either Connected with this lead before or An unknown Error occured. Saving this lead to the 'Connecting' list")
+                                    time.sleep(2)
+
+                                    action_cell = row.find_element(By.CSS_SELECTOR, 'td.list-people-detail-header__actions')
+                                    #action_cell = row.find_element(By.CSS_SELECTOR, 'td.list-people-detail-header__actions')
+
+                                    # Find the button within the cell
+                                    if action_cell:
+                                        button = action_cell.find_element(By.CSS_SELECTOR, 'button.artdeco-dropdown__trigger')
+                                        if button:
+                                            # Click the button
+                                            button.click()
+                                            time.sleep(2)
+
+                                            # Now, find and click on the "Message" button in the dropdown using partial aria-label match
+                                            dropdown_items = action_cell.find_elements(By.CSS_SELECTOR, '.artdeco-dropdown__item')
+                                            for item in dropdown_items:
+                                                aria_label = item.get_attribute('aria-label')
+                                                if aria_label and re.search(r'Message', aria_label):
+                                                    item.click()
+                                                    print("Clicked on Message button.")
+                                                    break  # Stop searching further
+
+                                            time.sleep(2)
+                                    
+                                    save_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Saved']")))
+                                    save_button.click()
+                                    time.sleep(2)
+
+                                    remove_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Need to Reach out To']")))
+                                    remove_button.click()
+                                    time.sleep(2)
+
+                                    test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
+                                    test_list_button.click()
+                                    time.sleep(2)
+
+                                    close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
+                                    close_button.click()
+                                    print("Closed message modal.")
+                                    time.sleep(2)
+                                    lead_counter = lead_counter + 1
+                                    continue
+                                else:
+                                    
                                     message_box = connect_modal.find_element(By.CSS_SELECTOR, 'textarea#connect-cta-form__invitation')
                                     message_box.send_keys('I wanted to connect to see if we could offer you a more Cost Effective, Efficient, 3PL Services &/or Freight Forwarding Services (https://primeavenuelogistics.com/).')
                                     time.sleep(2)
@@ -269,6 +368,41 @@ def main():
                                         time.sleep(2)
                                         close_connect_modal_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-test-modal-close-btn]')))
                                         close_connect_modal_button.click()
+                                        # Find the button within the cell
+                                        if action_cell:
+                                            button = action_cell.find_element(By.CSS_SELECTOR, 'button.artdeco-dropdown__trigger')
+                                            if button:
+                                                # Click the button
+                                                button.click()
+                                                time.sleep(2)
+
+                                                # Now, find and click on the "Message" button in the dropdown using partial aria-label match
+                                                dropdown_items = action_cell.find_elements(By.CSS_SELECTOR, '.artdeco-dropdown__item')
+                                                for item in dropdown_items:
+                                                    aria_label = item.get_attribute('aria-label')
+                                                    if aria_label and re.search(r'Message', aria_label):
+                                                        item.click()
+                                                        print("Clicked on Message button.")
+                                                        break  # Stop searching further
+
+                                                time.sleep(2)
+                                        
+                                        save_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Saved']")))
+                                        save_button.click()
+                                        time.sleep(2)
+
+                                        remove_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Need to Reach out To']")))
+                                        remove_button.click()
+                                        time.sleep(2)
+
+                                        test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Info Retrieved']")))
+                                        test_list_button.click()
+                                        time.sleep(2)
+
+                                        close_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-control-name="overlay.close_overlay"]')))
+                                        close_button.click()
+                                        print("Closed message modal.")
+                                        time.sleep(2)
                                         lead_counter = lead_counter + 1
                                         continue
                                     
@@ -329,14 +463,6 @@ def main():
                                     time.sleep(2)
                                     lead_counter = lead_counter + 1
                                     continue
-
-                                    
-                                except:
-                                    print("An error occured while trying to connect with this Lead. Moving to the next lead")
-                                    close_connect_modal_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'button[data-test-modal-close-btn]')))
-                                    close_connect_modal_button.click()
-                                    lead_counter = lead_counter + 1
-                                    #print("Checking if the connecting is pending...")
                                     
 
                             else:

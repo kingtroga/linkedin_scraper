@@ -341,7 +341,7 @@ def main():
                                     remove_button.click()
                                     time.sleep(2)
 
-                                    test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Connecting']")))
+                                    test_list_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Info Retrieved']")))
                                     test_list_button.click()
                                     time.sleep(2)
 

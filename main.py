@@ -11,6 +11,17 @@ from bs4 import BeautifulSoup
 from selenium.common.exceptions import TimeoutException as SeleniumTimeOutException
 import pandas as pd
 
+
+# DATA LOSS PREVENTION FOLDER
+DLP_DIRECTORY = 'dlp'
+
+def create_directory(path):
+    try:
+        os.makedirs(path, exist_ok=True)
+        print(f"Directory '{path}' created successfully or already exists.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 def main():
 
     # Get session details from user
@@ -66,10 +77,23 @@ def main():
                 try:
                     # Write the DataFrame to an Excel file
                     df.to_excel(excel_file, index=False)
+
+                    # Remove duplicate rows
+                    df = pd.read_excel(excel_file)
+                    df_cleaned = df.drop_duplicates()
+                    df_cleaned.to_excel(excel_file, index=False)
+
+
                     print(f"Data scrapped has been written to {excel_file}")
                 except:
                     # If Openpxl is unavalible write the data to a CSV file
                     df.to_csv(csv_file, index=False)
+
+                    # Remove duplicate rows
+                    df = pd.read_csv(csv_file)
+                    df_cleaned = df.drop_duplicates()
+                    df_cleaned.to_csv(csv_file, index=False)
+                    
                     print(f"Data scrapped has been written to {csv_file}")
                 
 
@@ -148,9 +172,43 @@ def main():
                     'Geography': geography,
                     'Date Added': date_added
                 })
-                
 
+            # DATA LOSS PREVENTION IS DLP LOGIC
+            create_directory(DLP_DIRECTORY)
             print(f"{len(rows)} Rows of Data Scraped Successfully")
+
+            df = pd.DataFrame(data)
+
+            # Define the Excel file path
+            excel_file = os.path.join(DLP_DIRECTORY, 'scrape_output1.xlsx')
+            csv_file = os.path.join(DLP_DIRECTORY, 'scrape_output1.csv')
+
+
+            try:
+                # Write the DataFrame to an Excel file
+                df.to_excel(excel_file, index=False)
+
+                # Remove duplicate rows
+                df = pd.read_excel(excel_file)
+                df_cleaned = df.drop_duplicates()
+                df_cleaned.to_excel(excel_file, index=False)
+
+                print(f"{excel_file} has been updated")
+            except:
+                # If Openpxl is unavalible write the data to a CSV file
+                df.to_csv(csv_file, index=False)
+
+
+                # Remove duplicate rows
+                df = pd.read_csv(csv_file)
+                df_cleaned = df.drop_duplicates()
+                df_cleaned.to_csv(csv_file, index=False)
+
+
+                print(f"{csv_file} has been updated")
+            
+
+
 
             
             # Select all table rows
